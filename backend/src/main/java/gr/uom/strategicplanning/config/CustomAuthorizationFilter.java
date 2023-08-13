@@ -57,6 +57,10 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 }
             }
             else {
+                //ERROR:
+                //java.lang.IllegalStateException: Cannot call sendError() after the response has been committed
+                //	at org.apache.catalina.connector.ResponseFacade.checkCommitted(ResponseFacade.java:530) ~[tomcat-embed-core-9.0.75.jar:9.0.75]
+                //	at org.apache.catalina.connector.ResponseFacade.sendError(ResponseFacade.java:363) ~[tomcat-embed-core-9.0.75.jar:9.0.75]
                 filterChain.doFilter(request,response);
             }
         }

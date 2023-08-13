@@ -1,5 +1,6 @@
 package gr.uom.strategicplanning.config;
 
+import gr.uom.strategicplanning.controllers.requests.UserRequest;
 import gr.uom.strategicplanning.models.domain.Organization;
 import gr.uom.strategicplanning.models.users.User;
 import gr.uom.strategicplanning.repositories.OrganizationRepository;
@@ -36,8 +37,9 @@ public class Config {
                 Optional<User> userOptional = userRepository.findByEmail(superuserEmail);
                 if(!userOptional.isPresent()){
                     User admin = new User(superuserName, superuserEmail, superuserPassword);
+                    UserRequest userRequest = new UserRequest(admin);
                     userService.createOrganization(superuserOrganization, admin);
-                    userService.createUser(admin);
+                    userService.createUser(userRequest);
                     userPrivilegedService.verifyUser(superuserEmail);
                     userPrivilegedService.givePrivilegeToUser(superuserEmail);
                 }

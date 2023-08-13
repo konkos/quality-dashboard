@@ -2,6 +2,7 @@ package gr.uom.strategicplanning.controllers;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gr.uom.strategicplanning.controllers.requests.UserRequest;
 import gr.uom.strategicplanning.controllers.responses.UserResponse;
 import gr.uom.strategicplanning.models.users.User;
 import gr.uom.strategicplanning.repositories.UserRepository;
@@ -32,7 +33,7 @@ public class UserController {
     UserRepository userRepository;
 
     @PostMapping("/register")
-    User createUser(@RequestBody User user){
+    User createUser(@RequestBody UserRequest user){
         return userService.createUser(user);
     }
 

@@ -1,5 +1,7 @@
 package gr.uom.strategicplanning.services;
 
+import gr.uom.strategicplanning.controllers.requests.UserRequest;
+import gr.uom.strategicplanning.controllers.responses.OrganizationResponse;
 import gr.uom.strategicplanning.controllers.responses.UserResponse;
 import gr.uom.strategicplanning.models.domain.Organization;
 import gr.uom.strategicplanning.models.users.User;
@@ -28,10 +30,16 @@ public class UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    public User createUser(User user) {
-        Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
-        if(!userOptional.isPresent()){
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+    public User createUser(UserRequest userRequest) {
+        Optional<User> userOptional = userRepository.findByEmail(userRequest.getEmail());
+        if(userOptional.isEmpty()){
+            User user = new User();
+            user.setName(userRequest.getName());
+            user.setEmail(userRequest.getEmail());
+            user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+            Organization organization = organizationRepository.findById(userRequest.getOrganizationId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Organization not found"));
+            user.setOrganization(organization);
             user.setRoles("SIMPLE");
             user.setVerified(false);
             return userRepository.save(user);
