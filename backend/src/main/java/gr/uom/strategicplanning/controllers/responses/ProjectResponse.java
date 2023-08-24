@@ -1,7 +1,7 @@
 package gr.uom.strategicplanning.controllers.responses;
 
-import gr.uom.strategicplanning.enums.ProjectStatus;
-import gr.uom.strategicplanning.models.domain.Developer;
+import gr.uom.strategicplanning.models.domain.Language;
+import gr.uom.strategicplanning.models.enums.ProjectStatus;
 import gr.uom.strategicplanning.models.domain.Project;
 import gr.uom.strategicplanning.models.stats.ProjectStats;
 import lombok.AllArgsConstructor;
@@ -48,6 +48,11 @@ public class ProjectResponse {
         this.projectStats = project.getProjectStats();
         this.organizationName = project.getOrganization().getName();
         this.organizationId = project.getOrganization().getId();
+
+        Collection<Language> languages = project.getLanguages();
+        for (Language language : languages) {
+            this.languages.add(new LanguageResponse(language));
+        }
     }
 
     public static List<ProjectResponse> convertToProjectResponseList(List<Project> projects) {

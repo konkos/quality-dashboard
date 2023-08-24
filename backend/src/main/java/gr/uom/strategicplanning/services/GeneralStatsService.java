@@ -20,38 +20,7 @@ public class GeneralStatsService {
     @Autowired
     private LanguageService languageService;
 
-    public GeneralStats getGeneralStats(Organization organization) {
-        GeneralStats generalStats = new GeneralStats();
-        Optional<GeneralStats> generalStatsOptional = generalStatsRepository.findByOrganizationAnalysis(organization.getOrganizationAnalysis());
-
-        if (generalStatsOptional.isPresent()) {
-            generalStats = generalStatsOptional.get();
-        }
-
-        generalStats.setLanguages(languageService.getLanguages(organization));
-        generalStats.setTotalDevs(organization.getProjects()
-                .stream().mapToInt(Project::getTotalDevelopers).sum());
-        generalStats.setTotalFiles(organization.getProjects()
-                .stream().mapToInt(project -> project.getCommits().stream().mapToInt(Commit::getTotalFiles).sum()).sum());
-        generalStats.setTotalCommits(organization.getProjects()
-                .stream().mapToInt(project -> project.getCommits().size()).sum());
-        generalStats.setTotalLinesOfCode(organization.getProjects().stream()
-                .mapToInt(project -> project.getCommits().stream()
-                        .mapToInt(Commit::getTotalLoC).sum()).sum());
-        generalStats.setTotalLanguages(organization.getProjects().stream()
-                .mapToInt(project -> project.getLanguages().size()).sum());
-
-        //TODO: Implement this
-//        generalStats.setTopLanguages();
-
-        generalStats.setOrganizationAnalysis(organization.getOrganizationAnalysis());
-
-        saveGeneralStats(generalStats);
-
-        return generalStats;
-    }
-
-    private void saveGeneralStats(GeneralStats generalStats) {
+    public void saveGeneralStats(GeneralStats generalStats) {
         generalStatsRepository.save(generalStats);
     }
 }

@@ -5,6 +5,8 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import gr.uom.strategicplanning.analysis.HttpClient;
 import gr.uom.strategicplanning.models.domain.Commit;
+import gr.uom.strategicplanning.models.domain.Language;
+import gr.uom.strategicplanning.models.domain.LanguageStats;
 import gr.uom.strategicplanning.models.domain.Project;
 
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -51,12 +53,22 @@ public class GithubApiClient extends HttpClient {
         project.setTotalCommits(captureTotalCommits(username, repoName));
         project.setForks(getTotalForks(username, repoName));
         project.setStars(this.getTotalStars(username, repoName));
+
+        Map<String, Integer> languageMap = languageResponse(project);
+        Collection<Language> language = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> entry : languageMap.entrySet()) {
+            Language lang = new Language();
+            lang.setName(entry.getKey());
+            lang.setLinesOfCode(entry.getValue());
+
+            project.addLanguage(lang);
+        }
     }
 
     public Map<String, Integer> languageResponse(Project project) throws IOException {
-        String[] split = project.getRepoUrl().split("/");
-        String owner = split[split.length - 2];
-        String name = split[split.length - 1];
+        String owner = extractUsername(project.getRepoUrl());
+        String name = extractRepoName(project.getRepoUrl());
 
         String url = "https://api.github.com/repos/" + owner + "/" + name + "/languages";
 

@@ -1,9 +1,7 @@
 package gr.uom.strategicplanning.analysis.sonarqube;
 
-import gr.uom.strategicplanning.analysis.github.GithubApiClient;
-import gr.uom.strategicplanning.enums.ProjectStatus;
+import gr.uom.strategicplanning.models.enums.ProjectStatus;
 import gr.uom.strategicplanning.models.domain.Commit;
-import gr.uom.strategicplanning.models.domain.Language;
 import gr.uom.strategicplanning.models.domain.Project;
 
 /**
@@ -29,7 +27,7 @@ public class SonarAnalyzer {
      * @param commit
      * @throws Exception If any error occurs during the analysis process.
      */
-    public void analyzeProject(Project project, Commit commit) throws Exception {
+    public void analyzeProject(Project project) throws Exception {
         project.setStatus(ProjectStatus.ANALYSIS_STARTED);
 
         buildProps(project);
@@ -39,11 +37,7 @@ public class SonarAnalyzer {
 
         sonarScanner.execute();
 
-        sonarApiClient.fetchCommitData(project, commit);
-
         project.setStatus(ProjectStatus.ANALYSIS_COMPLETED);
-
-
     }
 
 

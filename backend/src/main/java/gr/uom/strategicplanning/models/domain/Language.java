@@ -18,6 +18,12 @@ public class Language {
     private Long id;
     private String name;
     private String imageUrl;
+    private int linesOfCode;
+
+    @JsonIgnore
+    @ManyToOne
+    @ToString.Exclude
+    private Project project;
 
     public Language(String name) {
         this.name = name;

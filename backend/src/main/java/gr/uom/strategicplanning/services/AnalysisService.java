@@ -16,42 +16,25 @@ import java.util.List;
 public class AnalysisService {
     private SonarAnalyzer sonarAnalyzer;
     private final GithubApiClient githubApiClient;
-    private final CommitService commitService;
     private final ProjectService projectService = new ProjectService();
     @Autowired
     private LanguageService languageService;
 
     @Autowired
-    public AnalysisService(CommitService commitService, @Value("${github.token}") String githubToken) {
-        this.commitService = commitService;
+    public AnalysisService(@Value("${github.token}") String githubToken) {
         this.githubApiClient = new GithubApiClient(githubToken);
     }
     
     public void fetchGithubData(Project project) throws Exception {
         githubApiClient.fetchProjectData(project);
-        project.setLanguages(languageService.extractLanguages(project));
     }
 
     public void startAnalysis(Project project) throws Exception {
         GithubApiClient.cloneRepository(project);
-        List<String> commitList = githubApiClient.fetchCommitSHA(project);
 
-
-        for (String commitSHA : commitList) {
-            githubApiClient.checkoutCommit(project, commitSHA);
-            Commit commit = new Commit();
-            commit.setHash(commitSHA);
-
-            sonarAnalyzer = new SonarAnalyzer(commitSHA);
-
-            sonarAnalyzer.analyzeProject(project, commit);
-            commitService.populateCommit(commit, project);
-            project.addCommit(commit);
-        }
-
-        projectService.populateProject(project);
+        sonarAnalyzer = new SonarAnalyzer(project.getName() + project.hashCode());
+        sonarAnalyzer.analyzeProject(project);
 
         GithubApiClient.deleteRepository(project);
-
     }
 }

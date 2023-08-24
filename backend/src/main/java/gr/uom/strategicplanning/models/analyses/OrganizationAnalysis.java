@@ -5,10 +5,7 @@ import gr.uom.strategicplanning.models.domain.Project;
 import gr.uom.strategicplanning.models.stats.ActivityStats;
 import gr.uom.strategicplanning.models.stats.GeneralStats;
 import gr.uom.strategicplanning.models.stats.TechDebtStats;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -18,6 +15,7 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class OrganizationAnalysis {
     public static final int COMMITS_THRESHOLD = 50;
 
@@ -27,7 +25,7 @@ public class OrganizationAnalysis {
     private String orgName;
     private Date analysisDate;
     @OneToOne
-    private GeneralStats generalStats;
+    private GeneralStats generalStats = new GeneralStats();
     @OneToOne
     private TechDebtStats techDebtStats;
     @OneToOne
@@ -37,5 +35,6 @@ public class OrganizationAnalysis {
     @OneToOne
     private Project mostForkedProject;
     @OneToOne
+    @ToString.Exclude
     private Organization organization;
 }

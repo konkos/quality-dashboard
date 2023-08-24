@@ -19,10 +19,10 @@ public class LanguageResponse {
     public String imageUrl;
     public int linesOfCode;
 
-    public LanguageResponse(LanguageStats languageStats) {
-        this.id = languageStats.getLanguage().getId();
-        this.name = languageStats.getLanguage().getName();
-        this.imageUrl = languageStats.getLanguage().getImageUrl();
+    public LanguageResponse(Language languageStats) {
+        this.id = languageStats.getId();
+        this.name = languageStats.getName();
+        this.imageUrl = languageStats.getImageUrl();
         this.linesOfCode = languageStats.getLinesOfCode();
     }
 }

@@ -1,6 +1,8 @@
 package gr.uom.strategicplanning.services;
 
 import gr.uom.strategicplanning.models.analyses.OrganizationAnalysis;
+import gr.uom.strategicplanning.models.domain.Language;
+import gr.uom.strategicplanning.models.domain.LanguageStats;
 import gr.uom.strategicplanning.models.domain.Organization;
 import gr.uom.strategicplanning.models.domain.Project;
 import gr.uom.strategicplanning.models.stats.ActivityStats;
@@ -10,6 +12,7 @@ import gr.uom.strategicplanning.repositories.OrganizationAnalysisRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @Service
@@ -32,38 +35,69 @@ public class OrganizationAnalysisService {
 
 
     public void updateOrganizationAnalysis(Organization organization) {
-        Optional<OrganizationAnalysis> organizationAnalysisOptional = organizationAnalysisRepository.findByOrganization(organization);
-        OrganizationAnalysis organizationAnalysis = new OrganizationAnalysis();
+        // Current datetime
+        long currentTimestamp = System.currentTimeMillis();
+        // Convert to date
+        java.sql.Date currentDate = new java.sql.Date(currentTimestamp);
 
-        if (organizationAnalysisOptional.isPresent()) {
-            organizationAnalysis = organizationAnalysisOptional.get();
+        OrganizationAnalysis organizationAnalysis = organization.getOrganizationAnalysis();
+        organizationAnalysis.setAnalysisDate(currentDate);
+
+        if (organizationAnalysis == null) {
+            organizationAnalysis = new OrganizationAnalysis();
         }
 
-        organizationAnalysis.setAnalysisDate(new java.util.Date());
+        // Set Most Forked and Most Starred Projects
+        Project mostStarredProject = getMostStarredProject(organization);
+        Project mostForkedProject = getMostForkedProject(organization);
+
         organizationAnalysis.setOrgName(organization.getName());
-        organizationAnalysis.setMostForkedProject(getMostForkedProject(organization));
-        organizationAnalysis.setMostStarredProject(getMostStarredProject(organization));
-        organizationAnalysis.setGeneralStats(getGeneralStats(organization));
-        organizationAnalysis.setActivityStats(getActivityStats(organization));
-        organizationAnalysis.setTechDebtStats(getTechDebtStats(organization));
+        organizationAnalysis.setMostForkedProject(mostForkedProject);
+        organizationAnalysis.setMostStarredProject(mostStarredProject);
 
-        saveOrganizationAnalysis(organizationAnalysis);
-    }
+        updateGeneralStats(organization);
 
-    private void saveOrganizationAnalysis(OrganizationAnalysis organizationAnalysis) {
         organizationAnalysisRepository.save(organizationAnalysis);
     }
 
-    private TechDebtStats getTechDebtStats(Organization organization) {
-        return techDebtStatsService.getTechDebtStats(organization);
+    private GeneralStats updateGeneralStats(Organization organization) {
+        GeneralStats generalStats = organization.getOrganizationAnalysis().getGeneralStats();
+
+        int numberOfProjects = getNumberOfProjects(organization);
+        generalStats.setTotalProjects(numberOfProjects);
+
+        int numberOfCommits = getNumberOfCommits(organization);
+        generalStats.setTotalCommits(numberOfCommits);
+
+        updateLanguageStats(organization);
+
+        return generalStats;
     }
 
-    private ActivityStats getActivityStats(Organization organization) {
-        return activityStatsService.getActivityStats(organization);
+    private Collection<Language> updateLanguageStats(Organization organization) {
+        Collection<Language> languages = organization
+                .getOrganizationAnalysis()
+                .getGeneralStats()
+                .getLanguages();
+
+        GeneralStats generalStats = organization.getOrganizationAnalysis().getGeneralStats();
+
+
+        for (Project project : organization.getProjects()) {
+            for (Language language : project.getLanguages()) {
+                generalStats.addLanguage(language);
+            }
+        }
+
+        return languages;
     }
 
-    private GeneralStats getGeneralStats(Organization organization) {
-        return generalStatsService.getGeneralStats(organization);
+    private int getNumberOfCommits(Organization organization) {
+        int numberOfCommits = 0;
+        for (Project project : organization.getProjects()) {
+            numberOfCommits += project.getTotalCommits();
+        }
+        return numberOfCommits;
     }
 
     private Project getMostStarredProject(Organization organization) {
@@ -96,5 +130,14 @@ public class OrganizationAnalysisService {
         }
 
         return mostForkedProject;
+    }
+
+    private int getNumberOfProjects(Organization organization) {
+        return organization.getProjects().size();
+    }
+
+    public void saveOrganizationAnalysis(OrganizationAnalysis organizationAnalysis) {
+        generalStatsService.saveGeneralStats(organizationAnalysis.getGeneralStats());
+        organizationAnalysisRepository.save(organizationAnalysis);
     }
 }

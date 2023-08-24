@@ -40,7 +40,11 @@ public class OrganizationAnalysisResponse {
         this.generalStats = organizationAnalysis.getGeneralStats();
         this.techDebtStats = organizationAnalysis.getTechDebtStats();
         this.activityStats = organizationAnalysis.getActivityStats();
-        this.mostStarredProject = new ProjectResponse(organizationAnalysis.getMostStarredProject());
-        this.mostForkedProject = new ProjectResponse(organizationAnalysis.getMostForkedProject());
+
+        if (organizationAnalysis.getMostStarredProject() != null)
+            this.mostStarredProject = new ProjectResponse(organizationAnalysis.getMostStarredProject());
+
+        if (organizationAnalysis.getMostForkedProject() != null)
+            this.mostForkedProject = new ProjectResponse(organizationAnalysis.getMostForkedProject());
     }
 }

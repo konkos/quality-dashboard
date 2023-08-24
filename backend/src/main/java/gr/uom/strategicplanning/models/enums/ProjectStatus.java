@@ -1,4 +1,4 @@
-package gr.uom.strategicplanning.enums;
+package gr.uom.strategicplanning.models.enums;
 
 public enum ProjectStatus {
     ANALYSIS_IN_PROGRESS,

@@ -4,7 +4,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import gr.uom.strategicplanning.models.domain.Organization;
 import gr.uom.strategicplanning.services.*;
 import gr.uom.strategicplanning.models.domain.Project;
-import gr.uom.strategicplanning.enums.ProjectStatus;
+import gr.uom.strategicplanning.models.enums.ProjectStatus;
 import gr.uom.strategicplanning.models.users.User;
 import gr.uom.strategicplanning.repositories.ProjectRepository;
 import gr.uom.strategicplanning.utils.TokenUtil;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @RestController
@@ -24,21 +23,17 @@ import java.util.Optional;
 public class AnalysisController {
     private final AnalysisService analysisService;
     private final ProjectRepository projectRepository;
-    private final OrganizationService organizationService;
     private final ProjectService projectService;
     private final UserService userService;
     private final OrganizationAnalysisService organizationAnalysisService;
 
     @Autowired
-    public AnalysisController(AnalysisService analysisService, OrganizationService organizationService,
-                              UserService userService, ProjectService projectService,
-                              ProjectRepository projectRepository, OrganizationAnalysisService organizationAnalysisService) {
+    public AnalysisController(ProjectService projectService, OrganizationAnalysisService organizationAnalysisService, AnalysisService analysisService, UserService userService, ProjectRepository projectRepository) {
         this.analysisService = analysisService;
-        this.projectService = projectService;
         this.userService = userService;
-        this.organizationAnalysisService = organizationAnalysisService;
-        this.organizationService = organizationService;
         this.projectRepository = projectRepository;
+        this.organizationAnalysisService = organizationAnalysisService;
+        this.projectService = projectService;
     }
 
     @PostMapping("/start")
@@ -49,17 +44,14 @@ public class AnalysisController {
         Organization organization = user.getOrganization();
 
         Project project = new Project();
-        Optional<Project> projectOptional = projectRepository.findFirstByRepoUrl(githubUrl);
-
-        organization.addProject(project);
+        project.setRepoUrl(githubUrl);
         project.setOrganization(organization);
 
-        if (projectOptional.isEmpty()) {
-            project.setRepoUrl(githubUrl);
-        }
-        else {
-            project = projectOptional.get();
-        }
+        organization.addProject(project);
+
+        Optional<Project> projectOptional = projectRepository.findFirstByRepoUrl(githubUrl);
+
+        if (projectOptional.isPresent()) project = projectOptional.get();
 
         analysisService.fetchGithubData(project);
 
@@ -68,9 +60,10 @@ public class AnalysisController {
             return ResponseEntity.ok("Project has been added to the queue");
         }
 
-        analysisService.startAnalysis(project);
+        projectService.saveProject(project);
         organizationAnalysisService.updateOrganizationAnalysis(organization);
-        organizationService.saveOrganization(organization);
+
+        System.out.println(project);
 
         return ResponseEntity.ok("Analysis ended successfully");
     }
