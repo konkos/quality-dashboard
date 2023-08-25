@@ -1,17 +1,18 @@
 package gr.uom.strategicplanning.models.stats;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gr.uom.strategicplanning.models.analyses.OrganizationAnalysis;
 import gr.uom.strategicplanning.models.domain.Language;
-import gr.uom.strategicplanning.models.domain.LanguageStats;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -30,47 +31,47 @@ public class GeneralStats {
     @ManyToMany
     private Map <Integer, Language> topLanguages;
     private int totalCommits;
-    private int totalFiles;
-    private int totalLinesOfCode;
-    private int totalDevs;
+    private int totalBytesOfCode;
+
     @OneToOne
+    @JsonIgnore
     private OrganizationAnalysis organizationAnalysis;
 
-    public Language addLanguage(Language language) {
-        Optional<Language> existingLanguage = getLanguageByName(language.getName());
-
-        if (existingLanguage.isEmpty()) {
-            Language newLanguage = new Language();
-            newLanguage.setName(language.getName());
-            newLanguage.setLinesOfCode(language.getLinesOfCode());
-
-            languages.add(newLanguage);
-            this.totalLanguages = languages.size();
-            return newLanguage;
-        }
-
-        Language lang = existingLanguage.get();
-        int currentLinesOfCode = lang.getLinesOfCode();
-        lang.setLinesOfCode(currentLinesOfCode + language.getLinesOfCode());
-
-        return lang;
+    public void addLanguage(Language language) {
+        if (!this.languages.contains(language))
+            this.languages.add(language);
     }
 
-    private boolean languageExists(Language language) {
-        for (Language lang : languages) {
-            if (lang.getName().equals(language.getName())) {
-                return true;
-            }
+    public Map<Integer, Language> findTopLanguages(int numberOfTopLanguages) {
+        // Create a comparator to sort languages by lines of code in descending order
+        Comparator<Language> linesOfCodeComparator = (l1, l2) ->
+                Integer.compare(l2.getTotalBytesOfCode(), l1.getTotalBytesOfCode());
+
+        // Sort the languages using the comparator
+        List<Language> sortedLanguages = languages.stream()
+                .sorted(linesOfCodeComparator)
+                .collect(Collectors.toList());
+
+        // Clear the existing topLanguages map
+        topLanguages.clear();
+
+        // Get the specified number of top languages or fewer if there are less than that number of languages
+        int topCount = Math.min(numberOfTopLanguages, sortedLanguages.size());
+        for (int i = 0; i < topCount; i++) {
+            topLanguages.put(i + 1, sortedLanguages.get(i));
         }
-        return false;
+
+        // Return the top languages
+        return this.topLanguages;
     }
 
-    private Optional<Language> getLanguageByName(String languageName) {
-        for (Language lang : languages) {
-            if (lang.getName().equals(languageName)) {
-                return Optional.of(lang);
-            }
-        }
-        return Optional.empty();
+    public int calculateTotalLinesOfCode() {
+        int totalLoC = languages.stream()
+                .mapToInt(Language::getTotalBytesOfCode)
+                .sum();
+
+        this.totalBytesOfCode = totalLoC;
+
+        return this.totalBytesOfCode;
     }
 }

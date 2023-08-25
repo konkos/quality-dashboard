@@ -1,6 +1,8 @@
 package gr.uom.strategicplanning.controllers.responses;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gr.uom.strategicplanning.models.domain.Language;
+import gr.uom.strategicplanning.models.domain.ProjectLanguage;
 import gr.uom.strategicplanning.models.enums.ProjectStatus;
 import gr.uom.strategicplanning.models.domain.Project;
 import gr.uom.strategicplanning.models.stats.ProjectStats;
@@ -26,14 +28,19 @@ public class ProjectResponse {
     private String repoUrl;
     private int forks;
     private int stars;
-    private int totalDevelopers;
-    private int totalCommits;
     private int totalLanguages;
     private ProjectStatus status;
-    private Set<DeveloperResponse> developers = new HashSet<>();
-    private Collection<CommitResponse> commits = new HashSet<>();
     private Collection<LanguageResponse> languages = new HashSet<>();
     private ProjectStats projectStats;
+
+    @JsonIgnore
+    private int totalDevelopers;
+    @JsonIgnore
+    private int totalCommits;
+    @JsonIgnore
+    private Set<DeveloperResponse> developers = new HashSet<>();
+    @JsonIgnore
+    private Collection<CommitResponse> commits = new HashSet<>();
 
     public ProjectResponse(Project project) {
         this.id = project.getId();
@@ -49,8 +56,8 @@ public class ProjectResponse {
         this.organizationName = project.getOrganization().getName();
         this.organizationId = project.getOrganization().getId();
 
-        Collection<Language> languages = project.getLanguages();
-        for (Language language : languages) {
+        Collection<ProjectLanguage> languages = project.getLanguages();
+        for (ProjectLanguage language : languages) {
             this.languages.add(new LanguageResponse(language));
         }
     }

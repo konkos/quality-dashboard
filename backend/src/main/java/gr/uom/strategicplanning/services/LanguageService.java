@@ -28,8 +28,8 @@ public class LanguageService {
         return languageRepository.findByName(languageName);
     }
 
-    public void saveLanguage(Language newLanguage) {
-        languageRepository.save(newLanguage);
+    public Language saveLanguage(Language newLanguage) {
+        return languageRepository.save(newLanguage);
     }
 
 }

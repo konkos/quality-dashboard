@@ -4,10 +4,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import gr.uom.strategicplanning.analysis.HttpClient;
-import gr.uom.strategicplanning.models.domain.Commit;
-import gr.uom.strategicplanning.models.domain.Language;
-import gr.uom.strategicplanning.models.domain.LanguageStats;
-import gr.uom.strategicplanning.models.domain.Project;
+import gr.uom.strategicplanning.models.domain.*;
 
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.Git;
@@ -15,15 +12,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 
 /**
@@ -58,12 +48,13 @@ public class GithubApiClient extends HttpClient {
         Collection<Language> language = new ArrayList<>();
 
         for (Map.Entry<String, Integer> entry : languageMap.entrySet()) {
-            Language lang = new Language();
+            ProjectLanguage lang = new ProjectLanguage();
             lang.setName(entry.getKey());
-            lang.setLinesOfCode(entry.getValue());
+            lang.setBytesOfCode(entry.getValue());
 
             project.addLanguage(lang);
         }
+        System.out.println(project);
     }
 
     public Map<String, Integer> languageResponse(Project project) throws IOException {

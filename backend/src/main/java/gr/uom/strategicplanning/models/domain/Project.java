@@ -1,5 +1,6 @@
 package gr.uom.strategicplanning.models.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gr.uom.strategicplanning.models.enums.ProjectStatus;
 import gr.uom.strategicplanning.models.analyses.OrganizationAnalysis;
 import gr.uom.strategicplanning.models.stats.ProjectStats;
@@ -29,7 +30,7 @@ public class Project {
     private int totalDevelopers;
     private int totalCommits;
     @OneToMany(mappedBy = "project")
-    private Collection<Language> languages = new ArrayList<>();
+    private Collection<ProjectLanguage> languages = new ArrayList<>();
     private int totalLanguages;
     @OneToMany(mappedBy = "project")
     private Set<Developer> developers = new HashSet<>();
@@ -47,28 +48,21 @@ public class Project {
         return true;
     }
 
-    public void addCommit(Commit commit) {
-        this.commits.add(commit);
-        commit.setProject(this);
-    }
-
     public void addDeveloper(Developer developer) {
         this.developers.add(developer);
         developer.setProject(this);
     }
 
-    public void addLanguage(Language lang) {
+    public void addLanguage(ProjectLanguage lang) {
         if (!languageExists(lang)) {
             this.languages.add(lang);
             lang.setProject(this);
         }
     }
 
-    private boolean languageExists(Language language) {
-        for (Language lang : this.languages) {
-            if (lang.is(language.getName())) {
-                return true;
-            }
+    private boolean languageExists(ProjectLanguage language) {
+        for (ProjectLanguage lang : this.languages) {
+            if (lang.is(language)) return true;
         }
         return false;
     }

@@ -1,15 +1,11 @@
 package gr.uom.strategicplanning.services;
 
 import gr.uom.strategicplanning.models.analyses.OrganizationAnalysis;
-import gr.uom.strategicplanning.models.domain.Language;
-import gr.uom.strategicplanning.models.domain.LanguageStats;
-import gr.uom.strategicplanning.models.domain.Organization;
-import gr.uom.strategicplanning.models.domain.Project;
-import gr.uom.strategicplanning.models.stats.ActivityStats;
+import gr.uom.strategicplanning.models.domain.*;
 import gr.uom.strategicplanning.models.stats.GeneralStats;
-import gr.uom.strategicplanning.models.stats.TechDebtStats;
 import gr.uom.strategicplanning.repositories.OrganizationAnalysisRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -17,20 +13,19 @@ import java.util.Optional;
 
 @Service
 public class OrganizationAnalysisService {
+    @Value("${organization.analysis.top-lags-count}")
+    private int TOP_LANGUAGES_COUNT;
 
     private OrganizationAnalysisRepository organizationAnalysisRepository;
 
     private GeneralStatsService generalStatsService;
 
-    private ActivityStatsService activityStatsService;
-
-    private TechDebtStatsService techDebtStatsService;
+    @Autowired
+    private LanguageService languageService;
 
     public OrganizationAnalysisService(OrganizationAnalysisRepository organizationAnalysisRepository,TechDebtStatsService techDebtStatsService, ActivityStatsService activityStatsService, GeneralStatsService generalStatsService) {
         this.organizationAnalysisRepository = organizationAnalysisRepository;
         this.generalStatsService = generalStatsService;
-        this.activityStatsService = activityStatsService;
-        this.techDebtStatsService = techDebtStatsService;
     }
 
 
@@ -63,14 +58,24 @@ public class OrganizationAnalysisService {
     private GeneralStats updateGeneralStats(Organization organization) {
         GeneralStats generalStats = organization.getOrganizationAnalysis().getGeneralStats();
 
+        // Find the number of projects
         int numberOfProjects = getNumberOfProjects(organization);
         generalStats.setTotalProjects(numberOfProjects);
 
+        // Find the number of commits
         int numberOfCommits = getNumberOfCommits(organization);
         generalStats.setTotalCommits(numberOfCommits);
 
+        // Update the language statistics
         updateLanguageStats(organization);
 
+        generalStats.findTopLanguages(TOP_LANGUAGES_COUNT);
+        generalStats.calculateTotalLinesOfCode();
+
+        int totalLanguages = generalStats.getLanguages().size();
+        generalStats.setTotalLanguages(totalLanguages);
+
+        generalStatsService.saveGeneralStats(generalStats);
         return generalStats;
     }
 
@@ -82,10 +87,28 @@ public class OrganizationAnalysisService {
 
         GeneralStats generalStats = organization.getOrganizationAnalysis().getGeneralStats();
 
-
         for (Project project : organization.getProjects()) {
-            for (Language language : project.getLanguages()) {
-                generalStats.addLanguage(language);
+            for (ProjectLanguage language : project.getLanguages()) {
+                String projectLanguageName = language.getName();
+                int projectLoC = language.getBytesOfCode();
+
+                // Check if the language already exists in the database
+                Optional<Language> existingLanguage = languageService.getLanguageByName(projectLanguageName);
+                Language newLanguage = new Language();
+
+                if (existingLanguage.isPresent()) newLanguage = existingLanguage.get();
+
+                // Update the language's stats
+                int totalLoCBefore = newLanguage.getTotalBytesOfCode();
+                int totalLoCAfter = totalLoCBefore + projectLoC;
+                newLanguage.setName(projectLanguageName);
+                newLanguage.setTotalBytesOfCode(totalLoCAfter);
+                newLanguage.setGeneralStats(generalStats);
+
+                languageService.saveLanguage(newLanguage);
+
+                // Update the language's stats in the general stats
+                generalStats.addLanguage(newLanguage);
             }
         }
 

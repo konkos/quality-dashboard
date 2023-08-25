@@ -1,5 +1,6 @@
 package gr.uom.strategicplanning.controllers.responses;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gr.uom.strategicplanning.models.analyses.OrganizationAnalysis;
 import gr.uom.strategicplanning.models.domain.Language;
 import gr.uom.strategicplanning.models.domain.Project;
@@ -27,11 +28,12 @@ public class OrganizationAnalysisResponse {
     private String orgName;
     private Date analysisDate;
     private GeneralStats generalStats;
+    @JsonIgnore
     private TechDebtStats techDebtStats;
+    @JsonIgnore
     private ActivityStats activityStats;
     private ProjectResponse mostStarredProject;
     private ProjectResponse mostForkedProject;
-    private Collection<LanguageResponse> languages = null;
 
     public OrganizationAnalysisResponse(OrganizationAnalysis organizationAnalysis) {
         this.id = organizationAnalysis.getId();

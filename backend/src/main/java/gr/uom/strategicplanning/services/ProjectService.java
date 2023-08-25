@@ -1,10 +1,8 @@
 package gr.uom.strategicplanning.services;
 
-import gr.uom.strategicplanning.models.domain.Language;
+import gr.uom.strategicplanning.models.domain.*;
 import gr.uom.strategicplanning.models.enums.ProjectStatus;
-import gr.uom.strategicplanning.models.domain.Developer;
-import gr.uom.strategicplanning.models.domain.LanguageStats;
-import gr.uom.strategicplanning.models.domain.Project;
+import gr.uom.strategicplanning.repositories.ProjectLanguageRepository;
 import gr.uom.strategicplanning.repositories.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,16 +20,14 @@ public class ProjectService {
     @Autowired
     private AnalysisService analysisService;
     @Autowired
-    private LanguageService languageService;
-
-    private final ProjectStatsService projectStatsService = new ProjectStatsService();
+    private ProjectLanguageRepository projectLanguageRepository;
 
     public void saveProject(Project project) {
-        Collection<Language> langs = project.getLanguages();
-
-        for (Language lang : langs) {
-            languageService.saveLanguage(lang);
-        }
+//        Collection<Language> langs = project.getLanguages();
+//
+//        for (Language lang : langs) {
+//            languageService.saveLanguage(lang);
+//        }
 
         projectRepository.save(project);
     }

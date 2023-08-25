@@ -1,10 +1,10 @@
 package gr.uom.strategicplanning.models.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import gr.uom.strategicplanning.models.stats.GeneralStats;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.Collection;
 
 @Entity
 @Getter
@@ -18,12 +18,13 @@ public class Language {
     private Long id;
     private String name;
     private String imageUrl;
-    private int linesOfCode;
+    private int totalBytesOfCode = 0;
 
     @JsonIgnore
-    @ManyToOne
     @ToString.Exclude
-    private Project project;
+    @ManyToOne
+    private GeneralStats generalStats;
+
 
     public Language(String name) {
         this.name = name;
