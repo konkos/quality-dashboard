@@ -55,6 +55,7 @@ public class ProjectService {
     }
 
     public void saveProject(Project project) {
+        projectStatsService.saveProjectStats(project.getProjectStats());
         projectRepository.save(project);
     }
 
