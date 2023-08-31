@@ -47,10 +47,8 @@ public class OrganizationAnalysisService {
         Collection<Project> projects = organization.getProjects();
 
         // Now parse all the languages and make organization languages with the total loc
-        for (Project project : projects) {
-            languageService.updateOrganizationLanguages(organization);
-        }
-
+        languageService.updateOrganizationLanguages(organization);
+        saveOrganizationAnalysis(organizationAnalysis);
 
         getGeneralStats(organization);
         organizationAnalysis.setActivityStats(getActivityStats(organization));
